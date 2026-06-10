@@ -70,27 +70,31 @@ class ProjectManager {
 
         this.projects.forEach(project => {
             const projectCard = document.createElement('div');
-            projectCard.className = 'bg-white rounded-lg shadow-sm p-6';
+            projectCard.className = 'bg-white dark:bg-gray-600 rounded-xl shadow-md p-6 transition-all duration-300 hover:-translate-y-1';
             projectCard.innerHTML = `
                 <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-xl font-semibold">${project.name}</h3>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">${project.name}</h3>
                     <div class="flex space-x-2">
                         <button onclick="projectManager.showProjectModal(${JSON.stringify(project)})"
-                            class="text-blue-500 hover:text-blue-600">Edit</button>
+                            class="text-blue-500 hover:text-blue-600 dark:text-blue-300 dark:hover:text-blue-200">
+                            Edit
+                        </button>
                         <button onclick="projectManager.deleteProject('${project.id}')"
-                            class="text-red-500 hover:text-red-600">Delete</button>
+                            class="text-red-500 hover:text-red-600 dark:text-red-300 dark:hover:text-red-200">
+                            Delete
+                        </button>
                     </div>
                 </div>
                 <div class="mb-4">
-                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-2 bg-gray-200 dark:bg-gray-500 rounded-full overflow-hidden">
                         <div class="h-full bg-blue-500" style="width: ${project.progress}%"></div>
                     </div>
-                    <div class="text-sm text-gray-600 mt-1">${project.progress}% completed</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-300 mt-1">${project.progress}% completed</div>
                 </div>
-                <div class="mb-4 text-gray-600">${project.description}</div>
-                <div class="bg-gray-50 p-3 rounded">
-                    <h4 class="font-semibold mb-2">Scaling Tips:</h4>
-                    <div class="text-gray-600">${project.scalingTips}</div>
+                <div class="mb-4 text-gray-600 dark:text-gray-300">${project.description}</div>
+                <div class="bg-gray-50 dark:bg-gray-500 p-3 rounded">
+                    <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Scaling Tips:</h4>
+                    <div class="text-gray-600 dark:text-gray-200">${project.scalingTips}</div>
                 </div>
             `;
             projectsList.appendChild(projectCard);

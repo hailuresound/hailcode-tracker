@@ -128,9 +128,30 @@ body {
     color: #cbd5e0;
 }
 
-/* Modal z-index fix */
+/* Tag styles */
+[class*="bg-"].rounded-full {
+    transition: all 0.2s ease;
+}
+
+/* Progress bar colors */
+.bg-red-500 {
+    background-color: #f56565;
+}
+.bg-yellow-500 {
+    background-color: #ecc94b;
+}
+.bg-green-500 {
+    background-color: #48bb78;
+}
+
+/* Modal scroll fix */
 #projectModal {
     z-index: 9999;
+}
+@media (max-width: 640px) {
+    #projectModal > div {
+        margin: 1rem;
+    }
 }
 
 /* Smooth scrolling */

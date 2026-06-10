@@ -48,8 +48,8 @@ class ProjectManager {
             progress: parseInt(form.projectProgress.value),
             description: form.projectDescription.value,
             scalingTips: form.projectScaling.value,
-            createdDate: new Date().toISOString(),
-            tags: [],
+            createdDate: form.projectId.value ? this.projects.find(p => p.id === form.projectId.value).createdDate : new Date().toISOString(),
+            tags: form.projectTags.value.split(',').map(tag => tag.trim()).filter(tag => tag),
         };
 
         if (form.projectId.value) {
@@ -69,12 +69,31 @@ class ProjectManager {
         projectsList.innerHTML = '';
 
         this.projects.forEach(project => {
+            const statusColor = project.progress < 30 ? 'red' : 
+                              project.progress < 70 ? 'yellow' : 'green';
+            const statusText = project.progress < 30 ? 'Needs Attention' : 
+                             project.progress < 70 ? 'In Progress' : 'On Track';
+
             const projectCard = document.createElement('div');
             projectCard.className = 'bg-white dark:bg-gray-600 rounded-xl shadow-md p-6 transition-all duration-300 hover:-translate-y-1';
             projectCard.innerHTML = `
                 <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">${project.name}</h3>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-1">${project.name}</h3>
+                        ${project.tags?.length ? `
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                ${project.tags.map(tag => `
+                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200">
+                                        ${tag}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
                     <div class="flex space-x-2">
+                        <span class="px-2 py-1 text-xs rounded-full bg-${statusColor}-100 text-${statusColor}-800 capitalize">
+                            ${statusText}
+                        </span>
                         <button onclick="projectManager.showProjectModal(${JSON.stringify(project)})"
                             class="text-blue-500 hover:text-blue-600 dark:text-blue-300 dark:hover:text-blue-200">
                             Edit
@@ -87,9 +106,12 @@ class ProjectManager {
                 </div>
                 <div class="mb-4">
                     <div class="h-2 bg-gray-200 dark:bg-gray-500 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500" style="width: ${project.progress}%"></div>
+                        <div class="h-full bg-${statusColor}-500" style="width: ${project.progress}%"></div>
                     </div>
-                    <div class="text-sm text-gray-600 dark:text-gray-300 mt-1">${project.progress}% completed</div>
+                    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        <span>${project.progress}% completed</span>
+                        <span>Created ${new Date(project.createdDate).toLocaleDateString()}</span>
+                    </div>
                 </div>
                 <div class="mb-4 text-gray-600 dark:text-gray-300">${project.description}</div>
                 <div class="bg-gray-50 dark:bg-gray-500 p-3 rounded">

@@ -114,11 +114,26 @@ class ProjectManager {
     }
 }
 
-const projectManager = new ProjectManager();// JavaScript for interactive elements
+const projectManager = new ProjectManager();// JavaScript for hero section interactions
 document.addEventListener('DOMContentLoaded', function() {
-    const ctaButton = document.getElementById('ctaButton');
+    const ctaPrimary = document.getElementById('ctaPrimary');
+    const ctaSecondary = document.getElementById('ctaSecondary');
     
-    ctaButton.addEventListener('click', function() {
-        alert('Thank you for getting started!');
+    ctaPrimary.addEventListener('click', function() {
+        // Scroll to projects section
+        document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });
     });
+    
+    ctaSecondary.addEventListener('click', function() {
+        // Open demo modal or video
+        alert('Demo video would play here');
+    });
+
+    // Add animation classes on load
+    setTimeout(() => {
+        document.querySelectorAll('.floating-badge').forEach((badge, index) => {
+            badge.style.animationDelay = `${index * 0.2}s`;
+            badge.classList.add('animate-fade-in');
+        });
+    }, 300);
 });

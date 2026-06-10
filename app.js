@@ -114,4 +114,11 @@ class ProjectManager {
     }
 }
 
-const projectManager = new ProjectManager();
+const projectManager = new ProjectManager();// JavaScript for interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+    const ctaButton = document.getElementById('ctaButton');
+    
+    ctaButton.addEventListener('click', function() {
+        alert('Thank you for getting started!');
+    });
+});

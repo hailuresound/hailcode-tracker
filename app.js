@@ -11,7 +11,7 @@ class ProjectManager {
         document.getElementById('cancelBtn').addEventListener('click', () => this.hideProjectModal());
         document.getElementById('projectForm').addEventListener('submit', (e) => this.handleFormSubmit(e));
         this.setupDarkMode();
-        document.getElementById('sortDateAsc').addEventListener('click', () => this.sortProjects('date');
+        document.getElementById('sortDateAsc').addEventListener('click', () => this.sortProjects('date'));
         document.getElementById('sortDateDesc').addEventListener('click', () => this.sortProjects('date', 'desc'));
     }
 

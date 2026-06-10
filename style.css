@@ -104,7 +104,17 @@ body {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Dark mode adjustments for feature cards */
+/* Project cards */
+#projectsList > div {
+    transition: all 0.3s ease;
+}
+
+#projectsList > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode adjustments */
 .dark .feature-card {
     background-color: #2d3748;
     color: #e2e8f0;
@@ -116,4 +126,14 @@ body {
 
 .dark .feature-card p {
     color: #cbd5e0;
+}
+
+/* Modal z-index fix */
+#projectModal {
+    z-index: 9999;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
 }

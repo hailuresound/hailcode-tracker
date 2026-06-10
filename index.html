@@ -162,7 +162,87 @@
         </div>
     </main>
 
-    <footer class="mt-20 bg-white shadow">
+    <!-- Project Manager Section -->
+    <section id="projects" class="py-16 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Your Projects</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                    Manage all your active projects in one place
+                </p>
+            </div>
+
+            <div class="bg-white dark:bg-gray-700 rounded-xl shadow-md p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <button id="addProjectBtn" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        + Add New Project
+                    </button>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <button id="sortDateAsc" 
+                            class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 transition-colors">
+                            Sort by Date ↑
+                        </button>
+                        <button id="sortDateDesc" 
+                            class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 transition-colors">
+                            Sort by Date ↓
+                        </button>
+                        <label class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 transition-colors">
+                            <input type="checkbox" id="darkModeToggle" class="rounded">
+                            <span class="dark:text-white">Dark Mode</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="projectsList" class="grid gap-6"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Modal (same as before but with dark mode support) -->
+    <div id="projectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-gray-700 rounded-lg w-full max-w-2xl p-6 shadow-xl">
+            <h2 class="text-xl font-bold mb-4 dark:text-white">Add/Edit Project</h2>
+            <form id="projectForm">
+                <div class="space-y-4">
+                    <input type="hidden" id="projectId">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Name</label>
+                        <input type="text" id="projectName" required
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Completion Status (%)</label>
+                        <input type="number" id="projectProgress" min="0" max="100"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                        <textarea id="projectDescription" rows="3"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Scaling Tips</label>
+                        <textarea id="projectScaling" rows="3"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button type="button" id="cancelBtn" 
+                        class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white px-4 py-2 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Save Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="mt-20 bg-white dark:bg-gray-800 shadow">
         <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center">
             <p class="text-gray-500">&copy; 2026 Your Company. All rights reserved.</p>
         </div>

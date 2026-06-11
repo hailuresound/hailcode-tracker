@@ -360,6 +360,22 @@ class ProjectManager {
         return { diffDays, isOverdue, isToday };
     }
 
+    getCountdownText(dueDate) {
+        if (!dueDate) return 'No deadline';
+        const info = this.getDeadlineInfo(dueDate);
+        if (!info) return 'No deadline';
+        if (info.isOverdue) {
+            const absDays = Math.abs(info.diffDays);
+            return `🚨 Overdue by ${absDays} day${absDays === 1 ? '' : 's'}`;
+        }
+        if (info.isToday) return '⚠️ Due Today';
+        if (info.diffDays <= 7) {
+            return `${info.diffDays} day${info.diffDays === 1 ? '' : 's'} left`;
+        }
+        const weeks = Math.ceil(info.diffDays / 7);
+        return `${weeks} week${weeks === 1 ? '' : 's'} left`;
+    }
+
     formatDueDate(dueDate) {
         if (!dueDate) return '';
         const info = this.getDeadlineInfo(dueDate);
@@ -577,9 +593,9 @@ Be direct and practical. Flag any projects that are overdue or approaching their
                     let deadlineClass = '';
                     if (info && info.isOverdue) deadlineClass = 'overdue';
                     else if (info && (info.isToday || info.diffDays <= 3)) deadlineClass = 'soon';
-                    const deadlineText = project.dueDate ? new Date(project.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
-                    if (deadlineText) {
-                        deadlineHtml = `<div class="kanban-card-deadline ${deadlineClass}">📅 ${deadlineText}</div>`;
+                    const countdownText = this.getCountdownText(project.dueDate);
+                    if (countdownText && countdownText !== 'No deadline') {
+                        deadlineHtml = `<div class="kanban-card-deadline ${deadlineClass}">📅 ${countdownText}</div>`;
                     }
                 }
 
@@ -768,7 +784,7 @@ Be direct and practical. Flag any projects that are overdue or approaching their
                     ${project.dueDate ? `
                     <div class="deadline-row ${this.getDueDateClass(project.dueDate)}">
                         <span class="deadline-icon">📅</span>
-                        <span class="deadline-text">${this.formatDueDate(project.dueDate)}</span>
+                        <span class="deadline-text">${this.getCountdownText(project.dueDate)}</span>
                     </div>
                     ` : ''}
                 </div>

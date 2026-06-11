@@ -53,6 +53,7 @@ class ProjectManager {
         this.setupSortControls();
         this.setupViewToggle();
         this.setupQuickSession();
+        this.setupKanbanDragDrop();
 
         console.log('ProjectManager init complete');
     }
@@ -622,53 +623,68 @@ Be direct and practical. Flag any projects that are overdue or approaching their
             const countEl = document.getElementById(`count-${status}`);
             if (countEl) countEl.textContent = counts[status];
         });
+    }
 
-        // Attach column drag/drop area event listeners
-        document.querySelectorAll('.kanban-column').forEach(col => {
-            // Remove old listeners by replacing, then re-attach
-            const newCol = col.cloneNode(true);
-            col.parentNode.replaceChild(newCol, col);
-        });
+    setupKanbanDragDrop() {
+        const board = document.getElementById('kanbanBoard');
+        if (!board) return;
 
-        // Attach fresh listeners
-        document.querySelectorAll('.kanban-column').forEach(col => {
-            col.addEventListener('dragover', (e) => {
+        // Single event delegation on #kanbanBoard — survives re-renders
+        board.addEventListener('dragover', (e) => {
+            const col = e.target.closest('.kanban-column');
+            if (col) {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
                 col.classList.add('drag-over');
-            });
+            }
+        });
 
-            col.addEventListener('dragleave', () => {
+        board.addEventListener('dragleave', (e) => {
+            const col = e.target.closest('.kanban-column');
+            if (col) {
                 col.classList.remove('drag-over');
-            });
+            }
+        });
 
-            col.addEventListener('drop', (e) => {
-                e.preventDefault();
-                col.classList.remove('drag-over');
-                const projectId = e.dataTransfer.getData('text/plain');
-                const newStatus = col.dataset.status;
+        board.addEventListener('drop', (e) => {
+            e.preventDefault();
+            // Remove drag-over from all columns
+            document.querySelectorAll('.kanban-column').forEach(c => c.classList.remove('drag-over'));
 
-                if (!projectId || !newStatus) return;
+            const col = e.target.closest('.kanban-column');
+            if (!col) return;
 
-                const project = this.projects.find(p => p.id === projectId);
-                if (!project) return;
+            const projectId = e.dataTransfer.getData('text/plain');
+            const newStatus = col.dataset.status;
 
-                const currentStatus = this.getKanbanStatus(project);
-                if (currentStatus === newStatus) return;
+            if (!projectId || !newStatus) return;
 
-                // Update kanban status and progress suggestion
-                project.kanbanStatus = newStatus;
+            const project = this.projects.find(p => p.id === projectId);
+            if (!project) return;
 
-                // Suggest progress based on column
-                if (newStatus === 'completed') project.progress = 100;
-                else if (newStatus === 'review' && project.progress < 70) project.progress = 70;
-                else if (newStatus === 'in-progress' && project.progress < 20) project.progress = 20;
-                else if (newStatus === 'backlog' && project.progress >= 20) project.progress = 10;
+            const currentStatus = this.getKanbanStatus(project);
+            if (currentStatus === newStatus) return;
 
-                this.saveProjects();
-                this.renderKanbanBoard();
-                this.renderProjects();
-            });
+            // Update kanban status and progress percentage
+            project.kanbanStatus = newStatus;
+
+            // Set progress based on target column thresholds
+            // Using explicit thresholds: In Progress=50%, Review=75%, Completed=100%
+            if (newStatus === 'completed') {
+                project.progress = 100;
+            } else if (newStatus === 'review') {
+                project.progress = Math.max(project.progress, 75);
+            } else if (newStatus === 'in-progress') {
+                project.progress = Math.max(project.progress, 50);
+            } else if (newStatus === 'backlog') {
+                if (project.progress >= 20) {
+                    project.progress = 10;
+                }
+            }
+
+            this.saveProjects();
+            this.renderKanbanBoard();
+            this.renderProjects();
         });
     }
 

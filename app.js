@@ -13,6 +13,8 @@ class ProjectManager {
         this.setupDarkMode();
         document.getElementById('sortDateAsc').addEventListener('click', () => this.sortProjects('date'));
         document.getElementById('sortDateDesc').addEventListener('click', () => this.sortProjects('date', 'desc'));
+        document.getElementById('sortPriorityAsc').addEventListener('click', () => this.sortProjects('priority'));
+        document.getElementById('sortPriorityDesc').addEventListener('click', () => this.sortProjects('priority', 'desc'));
     }
 
     setupDarkMode() {
@@ -33,6 +35,11 @@ class ProjectManager {
                 return direction === 'asc' ?
                     new Date(a.createdDate) - new Date(b.createdDate) :
                     new Date(b.createdDate) - new Date(a.createdDate);
+            } else if (criteria === 'priority') {
+                const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+                return direction === 'asc' ?
+                    priorityOrder[a.priority] - priorityOrder[b.priority] :
+                    priorityOrder[b.priority] - priorityOrder[a.priority];
             }
             return 0;
         });
@@ -50,6 +57,7 @@ class ProjectManager {
             scalingTips: form.projectScaling.value,
             createdDate: form.projectId.value ? this.projects.find(p => p.id === form.projectId.value).createdDate : new Date().toISOString(),
             tags: form.projectTags.value.split(',').map(tag => tag.trim()).filter(tag => tag),
+            priority: form.projectPriority.value || 'medium',
         };
 
         if (form.projectId.value) {
@@ -80,6 +88,9 @@ class ProjectManager {
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-1">${project.name}</h3>
+                        <div class="text-sm priority-${project.priority}">
+                            ${project.priority.charAt(0).toUpperCase() + project.priority.slice(1)} Priority
+                        </div>
                         ${project.tags?.length ? `
                             <div class="flex flex-wrap gap-2 mt-1">
                                 ${project.tags.map(tag => `

@@ -13,6 +13,11 @@
     border-color: rgba(255,255,255,0.1);
 }
 
+/* Priority Colors */
+.priority-low { color: #3b82f6; }
+.priority-medium { color: #eab308; }
+.priority-high { color: #ef4444; }
+
 /* Progress Bar Colors */
 .bg-red-500 { background-color: #ef4444; }
 .bg-yellow-500 { background-color: #eab308; }

@@ -174,35 +174,75 @@ class ProjectManager {
     }
 
     syncDefaultProject() {
-        const defaultProject = {
-            id: 'hailcode-tracker',
-            name: 'HAILCODE Tracker',
-            description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, session logging, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/',
-            progress: 60,
-            priority: 'medium',
-            tags: ['productivity', 'tool'],
-            dueDate: null,
-        };
+        const seedProjects = [
+            {
+                id: 'hailcode-tracker',
+                name: 'HAILCODE Tracker',
+                description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, session logging, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/',
+                progress: 60,
+                priority: 'medium',
+                tags: ['productivity', 'tool'],
+                dueDate: null,
+            },
+            {
+                id: 'hailure-artist-website',
+                name: 'Hailure Artist Website',
+                description: 'Brand website for Hailure. Features: artist bio, discography, shop with Stripe integration for digital and physical products.',
+                progress: 5,
+                priority: 'high',
+                tags: ['web', 'hailure', 'stripe', 'ecommerce'],
+                dueDate: null,
+            },
+            {
+                id: 'summonr',
+                name: 'SUMMONR',
+                description: 'Multi-FX plugin. Previously developed in Claude Code. To be continued.',
+                progress: 25,
+                priority: 'high',
+                tags: ['plugin', 'dsp', 'audio', 'juce'],
+                dueDate: null,
+            },
+            {
+                id: 'hailure-artist-board',
+                name: 'Hailure Artist Board',
+                description: 'Replacement for Milanote board. Visual organiser for artist project thoughts, mood boards, and creative direction.',
+                progress: 0,
+                priority: 'medium',
+                tags: ['tool', 'hailure', 'organisation'],
+                dueDate: null,
+            },
+            {
+                id: 'phsR',
+                name: 'PHSR',
+                description: 'New audio plugin — phaser/flanger/comb filter/chorus/unison hybrid effect.',
+                progress: 0,
+                priority: 'medium',
+                tags: ['plugin', 'dsp', 'audio', 'juce'],
+                dueDate: null,
+            },
+        ];
 
-        const existingIndex = this.projects.findIndex(p => p.id === defaultProject.id);
+        seedProjects.forEach(seed => {
+            const existingIndex = this.projects.findIndex(p => p.id === seed.id);
 
-        if (existingIndex === -1) {
-            this.projects.push({
-                ...defaultProject,
-                createdDate: new Date().toISOString(),
-                sessions: []
-            });
-            console.log('Default project seeded');
-        } else {
-            const original = this.projects[existingIndex];
-            this.projects[existingIndex] = {
-                ...defaultProject,
-                createdDate: original.createdDate,
-                sessions: original.sessions || [],
-                dueDate: original.dueDate || null,
-            };
-            console.log('Default project synced');
-        }
+            if (existingIndex === -1) {
+                this.projects.push({
+                    ...seed,
+                    createdDate: new Date().toISOString(),
+                    sessions: []
+                });
+                console.log(`Seed project "${seed.name}" created`);
+            } else {
+                const original = this.projects[existingIndex];
+                this.projects[existingIndex] = {
+                    ...seed,
+                    createdDate: original.createdDate,
+                    sessions: original.sessions || [],
+                    dueDate: original.dueDate || null,
+                };
+                console.log(`Seed project "${seed.name}" synced`);
+            }
+        });
 
         this.saveProjects();
         this.renderProjects();

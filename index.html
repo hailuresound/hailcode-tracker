@@ -3,137 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Coding Projects</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>HAILCODE Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 dark:bg-gray-900">
+<body class="dark">
     <div class="min-h-screen">
-    <!-- Main Project Section -->
-    <main id="projects" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">My Coding Projects</h1> 
-                <p class="text-gray-600 dark:text-gray-400">Track your coding progress and ideas</p>
+        <!-- Main Project Section -->
+        <main class="max-w-7xl mx-auto px-4 py-8">
+            <div class="header">
+                <div>
+                    <h1 class="header-title">HAILCODE <span class="header-sub">Tracker</span></h1>
+                    <p>Track your coding progress and ideas</p>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                    <button id="addProjectBtn" class="btn btn-primary">
+                        + New Project
+                    </button>
+                    <button id="settingsBtn" class="btn btn-sm">⚙️ Settings</button>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="darkModeToggle" checked>
+                        <span>Dark Mode</span>
+                    </label>
+                </div>
             </div>
-            <div class="flex items-center gap-4">
-                <button id="addProjectBtn"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    + New Project
-                </button>
-                <label class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors cursor-pointer">
-                    <input type="checkbox" id="darkModeToggle" class="rounded">
-                    <span class="dark:text-white">Dark Mode</span>
-                </label>
+
+            <div class="card">
+                <div class="filter-bar">
+                    <button id="sortDateAsc" class="btn btn-sm">Sort by Date ↑</button>
+                    <button id="sortDateDesc" class="btn btn-sm">Sort by Date ↓</button>
+                    <button id="sortPriorityAsc" class="btn btn-sm">Sort by Priority ↑</button>
+                    <button id="sortPriorityDesc" class="btn btn-sm">Sort by Priority ↓</button>
+                </div>
+
+                <div id="projectsList" class="projects-grid"></div>
+            </div>
+        </main>
+
+        <!-- Project Modal -->
+        <div id="projectModal" class="hidden modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add / Edit Project</h2>
+                    <button type="button" id="closeModalBtn" class="modal-close" aria-label="Close">&times;</button>
+                </div>
+                <form id="projectForm">
+                    <div class="space-y-4">
+                        <input type="hidden" id="projectId">
+                        <div class="form-group">
+                            <label for="projectName">Project Name</label>
+                            <input type="text" id="projectName" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectProgress">Completion Status (%)</label>
+                            <input type="number" id="projectProgress" min="0" max="100" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectDescription">Description</label>
+                            <textarea id="projectDescription" rows="3" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectPriority">Priority</label>
+                            <select id="projectPriority" class="form-control">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectTags">Tags (comma separated)</label>
+                            <input type="text" id="projectTags" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="cancelBtn" class="btn btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Project</button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex flex-wrap gap-4 mb-6">
-                <button id="sortDateAsc"
-                    class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
-                    Sort by Date ↑
-                </button>
-                <button id="sortDateDesc"
-                    class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
-                    Sort by Date ↓
-                </button>
-                <button id="sortPriorityAsc"
-                    class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
-                    Sort by Priority ↑
-                </button>
-                <button id="sortPriorityDesc"
-                    class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
-                    Sort by Priority ↓
-                </button>
-            </div>
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <button id="addProjectBtn" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        + Add New Project
-                    </button>
-                    
-                    <div class="flex flex-wrap gap-4">
-                        <button id="sortDateAsc" 
-                            class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 transition-colors">
-                            Sort by Date ↑
-                        </button>
-                        <button id="sortDateDesc" 
-                            class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 transition-colors">
-                            Sort by Date ↓
-                        </button>
-                        <label class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 transition-colors">
-                            <input type="checkbox" id="darkModeToggle" class="rounded">
-                            <span class="dark:text-white">Dark Mode</span>
-                        </label>
-                    </div>
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="hidden modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>API Settings</h2>
+                    <button type="button" id="closeSettingsBtn" class="modal-close" aria-label="Close">&times;</button>
                 </div>
-
-                <div id="projectsList" class="grid gap-6"></div>
+                <form id="settingsForm">
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label for="apiKey">OpenRouter API Key</label>
+                            <input type="password" id="apiKey" class="form-control" placeholder="Enter your OpenRouter API key">
+                            <p style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.7;">Required for AI Insights. Get one at <a href="https://openrouter.ai" target="_blank" style="color: #c8a84b;">openrouter.ai</a></p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="cancelSettingsBtn" class="btn btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Key</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </section>
 
-    <!-- Project Modal with Better Mobile Support -->
-    <div id="projectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-        <div class="bg-white dark:bg-gray-700 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 class="text-xl font-bold mb-4 dark:text-white">Add/Edit Project</h2>
-            <form id="projectForm">
-                <div class="space-y-4">
-                    <input type="hidden" id="projectId">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags (comma separated)</label>
-                        <input type="text" id="projectTags" value="${project?.tags?.join(', ') || ''}"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Name</label>
-                        <input type="text" id="projectName" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Completion Status (%)</label>
-                        <input type="number" id="projectProgress" min="0" max="100"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                        <textarea id="projectDescription" rows="3"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
-                        <select id="projectPriority" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="low">Low</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Scaling Tips</label>
-                        <textarea id="projectScaling" rows="3"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end space-x-4">
-                    <button type="button" id="cancelBtn" 
-                        class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white px-4 py-2 rounded-lg transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        Save Project
-                    </button>
-                </div>
-            </form>
-        </div>
+        <footer class="footer">
+            <div class="max-w-7xl mx-auto py-4 px-4 text-center">
+                <p>&copy; 2026 HAILCODE Tracker. All rights reserved.</p>
+            </div>
+        </footer>
     </div>
-
-    <footer class="mt-20 bg-white dark:bg-gray-800 shadow">
-        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-gray-500">&copy; 2026 Your Company. All rights reserved.</p>
-        </div>
-    </footer>
 
     <script src="app.js"></script>
 </body>

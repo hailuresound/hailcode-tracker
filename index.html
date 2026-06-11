@@ -113,7 +113,39 @@
             </div>
         </div>
 
+        <!-- Session Logging Modal -->
+        <div id="sessionModal" class="hidden modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Log Session</h2>
+                    <button type="button" id="closeSessionBtn" class="modal-close" aria-label="Close">&times;</button>
+                </div>
+                <form id="sessionForm">
+                    <input type="hidden" id="sessionProjectId">
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label for="sessionDate">Date</label>
+                            <input type="date" id="sessionDate" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="sessionDuration">Duration (minutes)</label>
+                            <input type="number" id="sessionDuration" min="1" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="sessionNotes">Notes</label>
+                            <textarea id="sessionNotes" rows="3" class="form-control" placeholder="What did you work on?"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="cancelSessionBtn" class="btn btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Session</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <footer class="footer">
+</replace_in_file>
             <div class="max-w-7xl mx-auto py-4 px-4 text-center">
                 <p>&copy; 2026 HAILCODE Tracker. All rights reserved.</p>
             </div>

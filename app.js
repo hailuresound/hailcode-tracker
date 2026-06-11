@@ -9,6 +9,7 @@ class ProjectManager {
         console.log('ProjectManager init');
         this.loadProjects();
         this.syncDefaultProject();
+        this.setupSessionModal();
 
         const addBtn = document.getElementById('addProjectBtn');
         const cancelBtn = document.getElementById('cancelBtn');
@@ -23,7 +24,6 @@ class ProjectManager {
 
         addBtn.addEventListener('click', () => this.showProjectModal());
 
-        // Fresh modal close implementation
         cancelBtn.addEventListener('click', () => {
             console.log('Cancel clicked');
             modal.classList.add('hidden');
@@ -34,7 +34,6 @@ class ProjectManager {
             modal.classList.add('hidden');
         });
 
-        // Overlay click: stop propagation on content, close on backdrop
         const modalContent = modal.querySelector('.modal-content');
         if (modalContent) {
             modalContent.addEventListener('click', (e) => e.stopPropagation());
@@ -89,28 +88,23 @@ class ProjectManager {
             return;
         }
 
-        // Pre-fill if key exists
         const savedKey = localStorage.getItem('openRouterApiKey');
         if (savedKey) {
             apiKeyInput.value = savedKey;
         }
 
-        // Open settings
         settingsBtn.addEventListener('click', () => {
             settingsModal.classList.remove('hidden');
         });
 
-        // Close via X
         closeSettingsBtn.addEventListener('click', () => {
             settingsModal.classList.add('hidden');
         });
 
-        // Close via Cancel
         cancelSettingsBtn.addEventListener('click', () => {
             settingsModal.classList.add('hidden');
         });
 
-        // Close via overlay click
         const settingsContent = settingsModal.querySelector('.modal-content');
         if (settingsContent) {
             settingsContent.addEventListener('click', (e) => e.stopPropagation());
@@ -121,7 +115,6 @@ class ProjectManager {
             }
         });
 
-        // Save key
         settingsForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const key = apiKeyInput.value.trim();
@@ -132,7 +125,6 @@ class ProjectManager {
             }
         });
 
-        // First-run prompt
         if (!savedKey) {
             setTimeout(() => {
                 settingsModal.classList.remove('hidden');
@@ -140,11 +132,52 @@ class ProjectManager {
         }
     }
 
+    setupSessionModal() {
+        const sessionModal = document.getElementById('sessionModal');
+        const closeSessionBtn = document.getElementById('closeSessionBtn');
+        const cancelSessionBtn = document.getElementById('cancelSessionBtn');
+        const sessionForm = document.getElementById('sessionForm');
+
+        if (!sessionModal || !closeSessionBtn || !cancelSessionBtn || !sessionForm) {
+            console.error('Missing DOM elements for session modal');
+            return;
+        }
+
+        closeSessionBtn.addEventListener('click', () => {
+            sessionModal.classList.add('hidden');
+        });
+
+        cancelSessionBtn.addEventListener('click', () => {
+            sessionModal.classList.add('hidden');
+        });
+
+        const sessionContent = sessionModal.querySelector('.modal-content');
+        if (sessionContent) {
+            sessionContent.addEventListener('click', (e) => e.stopPropagation());
+        }
+        sessionModal.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                sessionModal.classList.add('hidden');
+            }
+        });
+
+        sessionForm.addEventListener('submit', (e) => this.handleSessionSubmit(e));
+    }
+
+    formatDuration(totalMinutes) {
+        if (!totalMinutes || totalMinutes <= 0) return '0h';
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        if (hours === 0) return `${mins}m`;
+        if (mins === 0) return `${hours}h`;
+        return `${hours}h ${mins}m`;
+    }
+
     syncDefaultProject() {
         const defaultProject = {
             id: 'hailcode-tracker',
             name: 'HAILCODE Tracker',
-            description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/',
+            description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, session logging, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/',
             progress: 35,
             priority: 'medium',
             tags: ['productivity', 'tool'],
@@ -153,18 +186,19 @@ class ProjectManager {
         const existingIndex = this.projects.findIndex(p => p.id === defaultProject.id);
 
         if (existingIndex === -1) {
-            // Add new with current date
             this.projects.push({
                 ...defaultProject,
-                createdDate: new Date().toISOString()
+                createdDate: new Date().toISOString(),
+                sessions: []
             });
             console.log('Default project seeded');
         } else {
-            // Update existing while preserving original createdDate
             const originalCreatedDate = this.projects[existingIndex].createdDate;
+            const originalSessions = this.projects[existingIndex].sessions || [];
             this.projects[existingIndex] = {
                 ...defaultProject,
-                createdDate: originalCreatedDate
+                createdDate: originalCreatedDate,
+                sessions: originalSessions
             };
             console.log('Default project synced');
         }
@@ -180,9 +214,8 @@ class ProjectManager {
             return;
         }
 
-        // Apply stored preference or default to dark
         const storedDarkMode = localStorage.getItem('darkMode');
-        const isDark = storedDarkMode !== 'false'; // default true if not set
+        const isDark = storedDarkMode !== 'false';
         document.body.classList.toggle('dark', isDark);
         toggle.checked = isDark;
 
@@ -225,14 +258,16 @@ class ProjectManager {
     handleFormSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        const existingProject = form.projectId.value ? this.projects.find(p => p.id === form.projectId.value) : null;
         const projectData = {
             id: form.projectId.value || Date.now().toString(),
             name: form.projectName.value,
             progress: parseInt(form.projectProgress.value),
             description: form.projectDescription.value,
-            createdDate: form.projectId.value ? this.projects.find(p => p.id === form.projectId.value).createdDate : new Date().toISOString(),
+            createdDate: existingProject ? existingProject.createdDate : new Date().toISOString(),
             tags: form.projectTags.value.split(',').map(tag => tag.trim()).filter(tag => tag),
             priority: form.projectPriority.value || 'medium',
+            sessions: existingProject ? (existingProject.sessions || []) : [],
         };
 
         if (form.projectId.value) {
@@ -245,6 +280,42 @@ class ProjectManager {
         this.saveProjects();
         this.renderProjects();
         this.hideProjectModal();
+    }
+
+    handleSessionSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const projectId = document.getElementById('sessionProjectId').value;
+        const project = this.projects.find(p => p.id === projectId);
+        if (!project) return;
+
+        if (!project.sessions) project.sessions = [];
+
+        project.sessions.push({
+            id: Date.now(),
+            date: document.getElementById('sessionDate').value,
+            duration: parseInt(document.getElementById('sessionDuration').value),
+            notes: document.getElementById('sessionNotes').value.trim(),
+        });
+
+        this.saveProjects();
+        this.renderProjects();
+
+        // Close modal
+        document.getElementById('sessionModal').classList.add('hidden');
+        form.reset();
+    }
+
+    showSessionModal(project) {
+        const modal = document.getElementById('sessionModal');
+        document.getElementById('sessionProjectId').value = project.id;
+        document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('sessionDuration').value = '';
+        document.getElementById('sessionNotes').value = '';
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('sessionDuration')?.focus();
+        }, 100);
     }
 
     async analyseProject(project) {
@@ -326,6 +397,31 @@ Provide 3 focused, actionable next steps for this project.`;
             }
 
             const escapedId = project.id.replace(/'/g, "\\'");
+            const sessions = project.sessions || [];
+            const totalMinutes = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+            const totalFormatted = this.formatDuration(totalMinutes);
+
+            // Build session timeline HTML
+            const sortedSessions = [...sessions].sort((a, b) => b.id - a.id);
+            let sessionListHtml = '';
+            if (sortedSessions.length === 0) {
+                sessionListHtml = '<p class="session-empty">No sessions logged yet.</p>';
+            } else {
+                sessionListHtml = '<ul class="session-list">';
+                sortedSessions.forEach(s => {
+                    const formattedDuration = this.formatDuration(s.duration);
+                    sessionListHtml += `
+                        <li class="session-item">
+                            <div class="session-item-header">
+                                <span class="session-item-date">${new Date(s.date).toLocaleDateString()}</span>
+                                <span class="session-item-duration">${formattedDuration}</span>
+                            </div>
+                            ${s.notes ? `<div class="session-item-notes">${s.notes}</div>` : ''}
+                        </li>
+                    `;
+                });
+                sessionListHtml += '</ul>';
+            }
 
             const projectCard = document.createElement('div');
             projectCard.className = 'project-card animate-fade-in';
@@ -358,8 +454,20 @@ Provide 3 focused, actionable next steps for this project.`;
                         <span>${progress}% completed</span>
                         <span>Created ${new Date(project.createdDate).toLocaleDateString()}</span>
                     </div>
+                    <div class="session-total">Total: ${totalFormatted}</div>
                 </div>
                 <p class="mb-4">${project.description}</p>
+                <div class="session-section">
+                    <details class="session-details">
+                        <summary>
+                            <span class="session-header">Sessions</span>
+                        </summary>
+                        <div class="session-body">
+                            ${sessionListHtml}
+                            <button data-action="log-session" data-id="${escapedId}" class="btn btn-sm" style="margin-top:0.625rem;">Log Session</button>
+                        </div>
+                    </details>
+                </div>
                 <div class="ai-insights">
                     <details class="ai-insights-details">
                         <summary>
@@ -374,7 +482,6 @@ Provide 3 focused, actionable next steps for this project.`;
                 </div>
             `;
 
-            // Corner flair image
             const cornerImg = document.createElement('img');
             cornerImg.src = 'assets/illustrations/flair3corner.png';
             cornerImg.className = 'corner-flair';
@@ -384,10 +491,12 @@ Provide 3 focused, actionable next steps for this project.`;
             const editBtn = projectCard.querySelector('[data-action="edit"]');
             const deleteBtn = projectCard.querySelector('[data-action="delete"]');
             const analyseBtn = projectCard.querySelector('[data-action="analyse"]');
+            const logSessionBtn = projectCard.querySelector('[data-action="log-session"]');
 
             editBtn.addEventListener('click', () => this.showProjectModal(project));
             deleteBtn.addEventListener('click', () => this.deleteProject(project.id));
             analyseBtn.addEventListener('click', () => this.analyseProject(project));
+            logSessionBtn.addEventListener('click', () => this.showSessionModal(project));
 
             projectsList.appendChild(projectCard);
         });
@@ -410,6 +519,10 @@ Provide 3 focused, actionable next steps for this project.`;
     loadProjects() {
         const savedProjects = localStorage.getItem('projects');
         this.projects = savedProjects ? JSON.parse(savedProjects) : [];
+        // Ensure all projects have sessions array
+        this.projects.forEach(p => {
+            if (!p.sessions) p.sessions = [];
+        });
         this.renderProjects();
     }
 

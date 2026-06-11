@@ -872,3 +872,18 @@ body.dark .action-link-danger:hover {
     flex-direction: column;
   }
 }
+
+/* --- Header Emblem Overrides --- */
+.header-emblem-row {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0.5rem 0 !important;
+}
+.header-emblem {
+  display: block !important;
+  margin: 0 auto !important;
+  width: 150px !important;
+  opacity: 0.5 !important;
+}

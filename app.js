@@ -52,7 +52,6 @@ class ProjectManager {
         this.setupDarkMode();
         this.setupSettingsModal();
         this.setupSortControls();
-        this.injectIllustrations();
 
         console.log('ProjectManager init complete');
     }
@@ -75,18 +74,6 @@ class ProjectManager {
             sortToggle.textContent = this.sortAsc ? '↑' : '↓';
             this.sortProjects(sortField.value, this.sortAsc);
         });
-    }
-
-    injectIllustrations() {
-        // Divider image between sort controls and project list
-        const filterBar = document.querySelector('.filter-bar');
-        if (filterBar) {
-            const divider = document.createElement('img');
-            divider.src = 'assets/illustrations/flair4.png';
-            divider.className = 'divider-flair';
-            divider.alt = '';
-            filterBar.after(divider);
-        }
     }
 
     setupSettingsModal() {

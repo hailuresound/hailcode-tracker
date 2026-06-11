@@ -178,9 +178,10 @@ class ProjectManager {
             id: 'hailcode-tracker',
             name: 'HAILCODE Tracker',
             description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, session logging, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/',
-            progress: 35,
+            progress: 60,
             priority: 'medium',
             tags: ['productivity', 'tool'],
+            dueDate: null,
         };
 
         const existingIndex = this.projects.findIndex(p => p.id === defaultProject.id);
@@ -193,12 +194,12 @@ class ProjectManager {
             });
             console.log('Default project seeded');
         } else {
-            const originalCreatedDate = this.projects[existingIndex].createdDate;
-            const originalSessions = this.projects[existingIndex].sessions || [];
+            const original = this.projects[existingIndex];
             this.projects[existingIndex] = {
                 ...defaultProject,
-                createdDate: originalCreatedDate,
-                sessions: originalSessions
+                createdDate: original.createdDate,
+                sessions: original.sessions || [],
+                dueDate: original.dueDate || null,
             };
             console.log('Default project synced');
         }
@@ -255,16 +256,49 @@ class ProjectManager {
         this.renderProjects();
     }
 
+    getDeadlineInfo(dueDate) {
+        if (!dueDate) return null;
+        const now = new Date();
+        const due = new Date(dueDate);
+        const diffMs = due - now;
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const isOverdue = diffMs < 0;
+        const isToday = diffDays === 0;
+        return { diffDays, isOverdue, isToday };
+    }
+
+    formatDueDate(dueDate) {
+        if (!dueDate) return '';
+        const info = this.getDeadlineInfo(dueDate);
+        if (!info) return '';
+        const dateStr = new Date(dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        if (info.isOverdue) return `Overdue by ${Math.abs(info.diffDays)} day${Math.abs(info.diffDays) === 1 ? '' : 's'} (${dateStr})`;
+        if (info.isToday) return `Due Today (${dateStr})`;
+        if (info.diffDays <= 3) return `Due in ${info.diffDays} day${info.diffDays === 1 ? '' : 's'} (${dateStr})`;
+        return `Due ${dateStr}`;
+    }
+
+    getDueDateClass(dueDate) {
+        if (!dueDate) return '';
+        const info = this.getDeadlineInfo(dueDate);
+        if (!info) return '';
+        if (info.isOverdue) return 'deadline-overdue';
+        if (info.isToday || info.diffDays <= 3) return 'deadline-soon';
+        return 'deadline-future';
+    }
+
     handleFormSubmit(e) {
         e.preventDefault();
         const form = e.target;
         const existingProject = form.projectId.value ? this.projects.find(p => p.id === form.projectId.value) : null;
+        const dueDateRaw = document.getElementById('projectDueDate').value;
         const projectData = {
             id: form.projectId.value || Date.now().toString(),
             name: form.projectName.value,
             progress: parseInt(form.projectProgress.value),
             description: form.projectDescription.value,
             createdDate: existingProject ? existingProject.createdDate : new Date().toISOString(),
+            dueDate: dueDateRaw || null,
             tags: form.projectTags.value.split(',').map(tag => tag.trim()).filter(tag => tag),
             priority: form.projectPriority.value || 'medium',
             sessions: existingProject ? (existingProject.sessions || []) : [],
@@ -335,15 +369,44 @@ class ProjectManager {
         insightsEl.value = "Generating AI insights...";
 
         try {
-            const prompt = `Act as a project advisor. Given the project details below, suggest what to focus on next to move this project forward.
+            // Build deadline context
+            const projectsWithDeadlines = this.projects
+                .filter(p => p.dueDate)
+                .map(p => {
+                    const info = this.getDeadlineInfo(p.dueDate);
+                    return `${p.name} (Due: ${new Date(p.dueDate).toLocaleDateString()}, ${info.isOverdue ? 'OVERDUE by ' + Math.abs(info.diffDays) + ' days' : info.diffDays + ' days remaining'}, Progress: ${p.progress || 0}%)`;
+                });
 
-Project Name: ${project.name}
+            const deadlineSummary = projectsWithDeadlines.length > 0
+                ? `\n\nAll projects with deadlines:\n${projectsWithDeadlines.join('\n')}`
+                : '\n\nNo projects currently have deadlines set.';
+
+            const thisProjectDeadline = project.dueDate
+                ? (() => {
+                    const info = this.getDeadlineInfo(project.dueDate);
+                    return ` (Due: ${new Date(project.dueDate).toLocaleDateString()}, ${info.isOverdue ? 'OVERDUE by ' + Math.abs(info.diffDays) + ' days' : info.diffDays + ' days remaining'})`;
+                  })()
+                : ' (No deadline set)';
+
+            const prompt = `Act as a strategic project advisor. Analyze this project in the context of all active deadlines and provide time-sensitive recommendations.
+
+PROJECT:
+Name: ${project.name}${thisProjectDeadline}
 Description: ${project.description}
 Progress: ${project.progress}%
 Priority: ${project.priority}
 Tags: ${project.tags?.length ? project.tags.join(', ') : 'none'}
+Total time logged: ${this.formatDuration((project.sessions || []).reduce((sum, s) => sum + (s.duration || 0), 0))}
 
-Provide 3 focused, actionable next steps for this project.`;
+DEADLINE OVERVIEW:
+${deadlineSummary}
+
+Based on ALL deadline information, provide:
+1. **Deadline Assessment**: Is this project on track to meet its deadline? If overdue, what's the damage and recovery strategy?
+2. **Time Allocation**: How should I divide my next coding sessions between this project and others given their relative deadlines and priorities?
+3. **Strategic Next Steps**: 2-3 focused, actionable steps specific to this project's timeline.
+
+Be direct and practical. Flag any projects that are overdue or approaching their deadline soon.`;
 
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
@@ -455,6 +518,12 @@ Provide 3 focused, actionable next steps for this project.`;
                         <span>Created ${new Date(project.createdDate).toLocaleDateString()}</span>
                     </div>
                     <div class="session-total">Total: ${totalFormatted}</div>
+                    ${project.dueDate ? `
+                    <div class="deadline-row ${this.getDueDateClass(project.dueDate)}">
+                        <span class="deadline-icon">📅</span>
+                        <span class="deadline-text">${this.formatDueDate(project.dueDate)}</span>
+                    </div>
+                    ` : ''}
                 </div>
                 <p class="mb-4">${project.description}</p>
                 <div class="session-section">
@@ -519,9 +588,10 @@ Provide 3 focused, actionable next steps for this project.`;
     loadProjects() {
         const savedProjects = localStorage.getItem('projects');
         this.projects = savedProjects ? JSON.parse(savedProjects) : [];
-        // Ensure all projects have sessions array
+        // Ensure all projects have required fields (migration for existing data)
         this.projects.forEach(p => {
             if (!p.sessions) p.sessions = [];
+            if (!p.dueDate) p.dueDate = null;
         });
         this.renderProjects();
     }
@@ -535,6 +605,7 @@ Provide 3 focused, actionable next steps for this project.`;
             document.getElementById('projectProgress').value = project.progress;
             document.getElementById('projectDescription').value = project.description;
             document.getElementById('projectPriority').value = project.priority;
+            document.getElementById('projectDueDate').value = project.dueDate || '';
             document.getElementById('projectTags').value = project.tags?.join(', ') || '';
         } else {
             document.getElementById('projectForm').reset();

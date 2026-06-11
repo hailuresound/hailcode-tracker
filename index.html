@@ -32,10 +32,14 @@
 
             <div class="card">
                 <div class="filter-bar">
-                    <button id="sortDateAsc" class="btn btn-sm">Sort by Date ↑</button>
-                    <button id="sortDateDesc" class="btn btn-sm">Sort by Date ↓</button>
-                    <button id="sortPriorityAsc" class="btn btn-sm">Sort by Priority ↑</button>
-                    <button id="sortPriorityDesc" class="btn btn-sm">Sort by Priority ↓</button>
+                    <select id="sortField" class="sort-control">
+                        <option value="date">Date Created</option>
+                        <option value="progress">Completion %</option>
+                        <option value="priority">Priority</option>
+                        <option value="name">Alphabetical</option>
+                        <option value="status">Status</option>
+                    </select>
+                    <button id="sortDirection" class="sort-toggle" aria-label="Toggle sort direction">↑</button>
                 </div>
 
                 <div id="projectsList" class="projects-grid"></div>

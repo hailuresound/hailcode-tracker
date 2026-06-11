@@ -2,6 +2,7 @@ class ProjectManager {
     constructor() {
         this.projects = [];
         this.currentSort = null;
+        this.sortAsc = true;
     }
 
     init() {
@@ -50,13 +51,42 @@ class ProjectManager {
 
         this.setupDarkMode();
         this.setupSettingsModal();
-
-        document.getElementById('sortDateAsc').addEventListener('click', () => this.sortProjects('date'));
-        document.getElementById('sortDateDesc').addEventListener('click', () => this.sortProjects('date', 'desc'));
-        document.getElementById('sortPriorityAsc').addEventListener('click', () => this.sortProjects('priority'));
-        document.getElementById('sortPriorityDesc').addEventListener('click', () => this.sortProjects('priority', 'desc'));
+        this.setupSortControls();
+        this.injectIllustrations();
 
         console.log('ProjectManager init complete');
+    }
+
+    setupSortControls() {
+        const sortField = document.getElementById('sortField');
+        const sortToggle = document.getElementById('sortDirection');
+
+        if (!sortField || !sortToggle) {
+            console.error('Missing sort control elements');
+            return;
+        }
+
+        sortField.addEventListener('change', () => {
+            this.sortProjects(sortField.value, this.sortAsc);
+        });
+
+        sortToggle.addEventListener('click', () => {
+            this.sortAsc = !this.sortAsc;
+            sortToggle.textContent = this.sortAsc ? '↑' : '↓';
+            this.sortProjects(sortField.value, this.sortAsc);
+        });
+    }
+
+    injectIllustrations() {
+        // Divider image between sort controls and project list
+        const filterBar = document.querySelector('.filter-bar');
+        if (filterBar) {
+            const divider = document.createElement('img');
+            divider.src = 'assets/illustrations/flair4.png';
+            divider.className = 'divider-flair';
+            divider.alt = '';
+            filterBar.after(divider);
+        }
     }
 
     setupSettingsModal() {
@@ -158,34 +188,49 @@ class ProjectManager {
 
     setupDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
-        document.body.classList.add('dark');
-        toggle.checked = true;
+        if (!toggle) {
+            console.error('Dark mode toggle not found');
+            return;
+        }
+
+        // Apply stored preference or default to dark
+        const storedDarkMode = localStorage.getItem('darkMode');
+        const isDark = storedDarkMode !== 'false'; // default true if not set
+        document.body.classList.toggle('dark', isDark);
+        toggle.checked = isDark;
 
         toggle.addEventListener('change', () => {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('darkMode', toggle.checked);
+            const isChecked = toggle.checked;
+            document.body.classList.toggle('dark', isChecked);
+            localStorage.setItem('darkMode', isChecked);
+            console.log('Dark mode:', isChecked ? 'on' : 'off');
         });
-
-        const darkMode = localStorage.getItem('darkMode');
-        if (darkMode === 'false') {
-            toggle.checked = false;
-            document.body.classList.remove('dark');
-        }
     }
 
-    sortProjects(criteria, direction = 'asc') {
+    sortProjects(field, ascending = true) {
         this.projects.sort((a, b) => {
-            if (criteria === 'date') {
-                return direction === 'asc' ?
-                    new Date(a.createdDate) - new Date(b.createdDate) :
-                    new Date(b.createdDate) - new Date(a.createdDate);
-            } else if (criteria === 'priority') {
+            let comparison = 0;
+
+            if (field === 'date') {
+                comparison = new Date(a.createdDate) - new Date(b.createdDate);
+            } else if (field === 'progress') {
+                comparison = (a.progress ?? 0) - (b.progress ?? 0);
+            } else if (field === 'priority') {
                 const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-                return direction === 'asc' ?
-                    priorityOrder[a.priority] - priorityOrder[b.priority] :
-                    priorityOrder[b.priority] - priorityOrder[a.priority];
+                comparison = (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
+            } else if (field === 'name') {
+                comparison = (a.name || '').localeCompare(b.name || '');
+            } else if (field === 'status') {
+                const getStatusOrder = (p) => {
+                    const progress = p.progress ?? 0;
+                    if (progress < 30) return 1;
+                    if (progress < 70) return 2;
+                    return 3;
+                };
+                comparison = getStatusOrder(a) - getStatusOrder(b);
             }
-            return 0;
+
+            return ascending ? comparison : -comparison;
         });
         this.renderProjects();
     }
@@ -341,6 +386,13 @@ Provide 3 focused, actionable next steps for this project.`;
                     </details>
                 </div>
             `;
+
+            // Corner flair image
+            const cornerImg = document.createElement('img');
+            cornerImg.src = 'assets/illustrations/flair3corner.png';
+            cornerImg.className = 'corner-flair';
+            cornerImg.alt = '';
+            projectCard.appendChild(cornerImg);
 
             const editBtn = projectCard.querySelector('[data-action="edit"]');
             const deleteBtn = projectCard.querySelector('[data-action="delete"]');

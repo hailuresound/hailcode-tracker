@@ -23,6 +23,7 @@
                         <button id="addProjectBtn" class="btn btn-primary">
                             + New Project
                         </button>
+                        <button id="quickSessionBtn" class="btn btn-primary">⏱️ Log Session</button>
                         <button id="settingsBtn" class="btn btn-primary">⚙️ Settings</button>
                         <label class="toggle-label">
                             <input type="checkbox" id="darkModeToggle" checked>
@@ -42,9 +43,45 @@
                         <option value="status">Status</option>
                     </select>
                     <button id="sortDirection" class="sort-toggle" aria-label="Toggle sort direction">↑</button>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="list">📋 List</button>
+                        <button class="view-btn" data-view="kanban">📊 Board</button>
+                    </div>
                 </div>
 
                 <div id="projectsList" class="projects-grid"></div>
+
+                <!-- Kanban Board -->
+                <div id="kanbanBoard" class="kanban-board hidden">
+                    <div class="kanban-column" data-status="backlog">
+                        <div class="kanban-column-header">
+                            <h3 class="kanban-column-title">📋 Backlog</h3>
+                            <span class="kanban-count" id="count-backlog">0</span>
+                        </div>
+                        <div class="kanban-column-body" id="column-backlog"></div>
+                    </div>
+                    <div class="kanban-column" data-status="in-progress">
+                        <div class="kanban-column-header">
+                            <h3 class="kanban-column-title">🔧 In Progress</h3>
+                            <span class="kanban-count" id="count-in-progress">0</span>
+                        </div>
+                        <div class="kanban-column-body" id="column-in-progress"></div>
+                    </div>
+                    <div class="kanban-column" data-status="review">
+                        <div class="kanban-column-header">
+                            <h3 class="kanban-column-title">👁️ Review</h3>
+                            <span class="kanban-count" id="count-review">0</span>
+                        </div>
+                        <div class="kanban-column-body" id="column-review"></div>
+                    </div>
+                    <div class="kanban-column" data-status="completed">
+                        <div class="kanban-column-header">
+                            <h3 class="kanban-column-title">✅ Completed</h3>
+                            <span class="kanban-count" id="count-completed">0</span>
+                        </div>
+                        <div class="kanban-column-body" id="column-completed"></div>
+                    </div>
+                </div>
             </div>
         </main>
 

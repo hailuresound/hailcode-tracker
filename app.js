@@ -51,8 +51,60 @@ class ProjectManager {
         this.setupDarkMode();
         this.setupSettingsModal();
         this.setupSortControls();
+        this.setupViewToggle();
+        this.setupQuickSession();
 
         console.log('ProjectManager init complete');
+    }
+
+    getKanbanStatus(project) {
+        if (project.kanbanStatus) return project.kanbanStatus;
+        const progress = project.progress ?? 0;
+        if (progress >= 100) return 'completed';
+        if (progress >= 70) return 'review';
+        if (progress >= 20) return 'in-progress';
+        return 'backlog';
+    }
+
+    setupQuickSession() {
+        const quickBtn = document.getElementById('quickSessionBtn');
+        if (!quickBtn) return;
+
+        quickBtn.addEventListener('click', () => {
+            // Default to the HAILCODE Tracker project if it exists
+            const defaultProject = this.projects.find(p => p.id === 'hailcode-tracker');
+            if (defaultProject) {
+                this.showSessionModal(defaultProject);
+            } else if (this.projects.length > 0) {
+                // Fallback to the first project
+                this.showSessionModal(this.projects[0]);
+            }
+        });
+    }
+
+    setupViewToggle() {
+        const viewBtns = document.querySelectorAll('.view-btn');
+        const listView = document.getElementById('projectsList');
+        const kanbanView = document.getElementById('kanbanBoard');
+
+        if (!viewBtns.length || !listView || !kanbanView) return;
+
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (btn.dataset.view === 'kanban') {
+                    listView.classList.add('hidden');
+                    kanbanView.classList.remove('hidden');
+                    this.renderKanbanBoard();
+                } else {
+                    listView.classList.remove('hidden');
+                    kanbanView.classList.add('hidden');
+                    this.renderProjects();
+                }
+            });
+        });
     }
 
     setupSortControls() {
@@ -178,8 +230,8 @@ class ProjectManager {
             {
                 id: 'hailcode-tracker',
                 name: 'HAILCODE Tracker',
-                description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, session logging, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/',
-                progress: 60,
+                description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, session logging, Kanban board view, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/\n\nRoadmap Features:\n- Project archiving system\n- Burndown charts for sprint tracking\n- Cross-session dark mode sync\n\nTroubleshooting Focus Areas:\n- Session time calculation accuracy\n- Drag-and-drop boundary cases\n- Mobile viewports under 320px',
+                progress: 75,
                 priority: 'medium',
                 tags: ['productivity', 'tool'],
                 dueDate: null,
@@ -451,11 +503,11 @@ Be direct and practical. Flag any projects that are overdue or approaching their
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${apiKey}`,
+                    'Authorization': `Bearer ${apiKey.trim()}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: "deepseek/deepseek-v4-flash",
+                    model: "deepseek/deepseek-chat",
                     messages: [
                         {
                             role: "user",
@@ -479,6 +531,145 @@ Be direct and practical. Flag any projects that are overdue or approaching their
             button.disabled = false;
             button.textContent = "Analyse Project";
         }
+    }
+
+    renderKanbanBoard() {
+        const columns = ['backlog', 'in-progress', 'review', 'completed'];
+        const columnNames = {
+            backlog: '📋 Backlog',
+            'in-progress': '🔧 In Progress',
+            review: '👁️ Review',
+            completed: '✅ Completed'
+        };
+
+        // Count projects per column
+        const counts = {};
+        columns.forEach(col => counts[col] = 0);
+
+        columns.forEach(status => {
+            const body = document.getElementById(`column-${status}`);
+            if (!body) return;
+            body.innerHTML = '';
+
+            const projectsInColumn = this.projects.filter(p => this.getKanbanStatus(p) === status);
+            counts[status] = projectsInColumn.length;
+
+            if (projectsInColumn.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'kanban-empty';
+                empty.textContent = 'Drop projects here';
+                body.appendChild(empty);
+            }
+
+            projectsInColumn.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'kanban-card';
+                card.draggable = true;
+                card.dataset.projectId = project.id;
+
+                const progress = project.progress ?? 0;
+
+                // Deadline info for card
+                let deadlineHtml = '';
+                if (project.dueDate) {
+                    const info = this.getDeadlineInfo(project.dueDate);
+                    let deadlineClass = '';
+                    if (info && info.isOverdue) deadlineClass = 'overdue';
+                    else if (info && (info.isToday || info.diffDays <= 3)) deadlineClass = 'soon';
+                    const deadlineText = project.dueDate ? new Date(project.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                    if (deadlineText) {
+                        deadlineHtml = `<div class="kanban-card-deadline ${deadlineClass}">📅 ${deadlineText}</div>`;
+                    }
+                }
+
+                card.innerHTML = `
+                    <h4 class="kanban-card-title">${project.name}</h4>
+                    <div class="kanban-card-meta">
+                        <span class="kanban-card-priority ${project.priority}">${project.priority}</span>
+                        <span class="kanban-card-progress">${progress}%</span>
+                    </div>
+                    <div class="kanban-card-progress-bar">
+                        <div class="kanban-card-progress-fill" style="width:${progress}%"></div>
+                    </div>
+                    ${deadlineHtml}
+                `;
+
+                // Drag events
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', project.id);
+                    e.dataTransfer.effectAllowed = 'move';
+                    card.classList.add('dragging');
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    document.querySelectorAll('.kanban-column').forEach(col => {
+                        col.classList.remove('drag-over');
+                    });
+                });
+
+                // Double-click to edit
+                card.addEventListener('dblclick', () => {
+                    this.showProjectModal(project);
+                });
+
+                body.appendChild(card);
+            });
+        });
+
+        // Update counts
+        columns.forEach(status => {
+            const countEl = document.getElementById(`count-${status}`);
+            if (countEl) countEl.textContent = counts[status];
+        });
+
+        // Attach column drag/drop area event listeners
+        document.querySelectorAll('.kanban-column').forEach(col => {
+            // Remove old listeners by replacing, then re-attach
+            const newCol = col.cloneNode(true);
+            col.parentNode.replaceChild(newCol, col);
+        });
+
+        // Attach fresh listeners
+        document.querySelectorAll('.kanban-column').forEach(col => {
+            col.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                col.classList.add('drag-over');
+            });
+
+            col.addEventListener('dragleave', () => {
+                col.classList.remove('drag-over');
+            });
+
+            col.addEventListener('drop', (e) => {
+                e.preventDefault();
+                col.classList.remove('drag-over');
+                const projectId = e.dataTransfer.getData('text/plain');
+                const newStatus = col.dataset.status;
+
+                if (!projectId || !newStatus) return;
+
+                const project = this.projects.find(p => p.id === projectId);
+                if (!project) return;
+
+                const currentStatus = this.getKanbanStatus(project);
+                if (currentStatus === newStatus) return;
+
+                // Update kanban status and progress suggestion
+                project.kanbanStatus = newStatus;
+
+                // Suggest progress based on column
+                if (newStatus === 'completed') project.progress = 100;
+                else if (newStatus === 'review' && project.progress < 70) project.progress = 70;
+                else if (newStatus === 'in-progress' && project.progress < 20) project.progress = 20;
+                else if (newStatus === 'backlog' && project.progress >= 20) project.progress = 10;
+
+                this.saveProjects();
+                this.renderKanbanBoard();
+                this.renderProjects();
+            });
+        });
     }
 
     renderProjects() {

@@ -127,7 +127,7 @@ class ProjectManager {
         const defaultProject = {
             id: 'hailcode-tracker',
             name: 'HAILCODE Tracker',
-            description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, forest-gold visual theme. Live demo: [GitHub Pages URL]',
+            description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/',
             progress: 35,
             priority: 'medium',
             tags: ['productivity', 'tool'],

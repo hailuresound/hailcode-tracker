@@ -266,9 +266,13 @@ a:hover {
   margin-bottom: 0.25rem;
 }
 
-/* Light mode: filled track darker, empty track lighter */
+/* Light mode: empty track lighter, dark mode: subtle muted track */
 body:not(.dark) .progress-bar {
   background: #d4ccc0;
+}
+
+body.dark .progress-bar {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .progress-fill {
@@ -544,6 +548,15 @@ select.form-control {
 }
 
 /* --- Header Emblem --- */
+.header > div:first-child {
+  text-align: center;
+}
+
+.header > div:first-child h1,
+.header > div:first-child p {
+  text-align: left;
+}
+
 .header-emblem {
   display: block;
   margin: 1rem auto 0;

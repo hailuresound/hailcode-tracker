@@ -3,6 +3,8 @@ class ProjectManager {
         this.projects = [];
         this.currentSort = null;
         this.sortAsc = true;
+        this.lastProjectsState = null;
+        this.undoTimer = null;
     }
 
     init() {
@@ -681,6 +683,9 @@ Be direct and practical. Flag any projects that are overdue or approaching their
             const currentStatus = this.getKanbanStatus(project);
             if (currentStatus === newStatus) return;
 
+            // Snapshot state before modifying
+            this.lastProjectsState = JSON.parse(JSON.stringify(this.projects));
+
             // Update kanban status and progress percentage
             project.kanbanStatus = newStatus;
 
@@ -701,6 +706,7 @@ Be direct and practical. Flag any projects that are overdue or approaching their
             this.saveProjects();
             this.renderKanbanBoard();
             this.renderProjects();
+            this.showUndoNotification();
         });
     }
 
@@ -832,6 +838,56 @@ Be direct and practical. Flag any projects that are overdue or approaching their
 
             projectsList.appendChild(projectCard);
         });
+    }
+
+    showUndoNotification() {
+        // Clear any existing timer
+        if (this.undoTimer) {
+            clearTimeout(this.undoTimer);
+            const existingToast = document.getElementById('undo-toast');
+            if (existingToast) existingToast.remove();
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.id = 'undo-toast';
+        toast.className = 'undo-toast';
+
+        const msg = document.createElement('span');
+        msg.textContent = 'Card moved. ';
+
+        const undoBtn = document.createElement('button');
+        undoBtn.textContent = 'Undo';
+        undoBtn.className = 'undo-btn';
+
+        undoBtn.addEventListener('click', () => {
+            if (this.lastProjectsState) {
+                this.projects = this.lastProjectsState;
+                this.lastProjectsState = null;
+                this.saveProjects();
+                this.renderKanbanBoard();
+                this.renderProjects();
+            }
+            toast.remove();
+            if (this.undoTimer) {
+                clearTimeout(this.undoTimer);
+                this.undoTimer = null;
+            }
+        });
+
+        toast.appendChild(msg);
+        toast.appendChild(undoBtn);
+        document.body.appendChild(toast);
+
+        // Trigger entrance animation
+        requestAnimationFrame(() => toast.classList.add('undo-toast-visible'));
+
+        // Auto-dismiss after 5 seconds
+        this.undoTimer = setTimeout(() => {
+            toast.classList.remove('undo-toast-visible');
+            setTimeout(() => toast.remove(), 300);
+            this.undoTimer = null;
+        }, 5000);
     }
 
     deleteProject(id) {

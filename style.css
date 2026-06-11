@@ -1157,6 +1157,57 @@ body.dark .kanban-column {
   }
 }
 
+/* --- Undo Toast --- */
+.undo-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(1.5rem);
+  background: var(--surface);
+  border: 1px solid rgba(200, 168, 75, 0.3);
+  border-radius: 2px;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 99999;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.undo-toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.undo-btn {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--tertiary);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 2px;
+  padding: 0.375rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.undo-btn:hover {
+  background: var(--primary);
+  color: var(--bg-dark);
+  box-shadow: 0 0 8px rgba(207, 192, 97, 0.4);
+}
+
 /* --- Footer Emblem Overrides --- */
 .footer-emblem {
   width: 100% !important;

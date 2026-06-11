@@ -16,5 +16,3 @@ build/
 # IDE
 .vscode/
 
-# Illustration assets (stored externally)
-assets/illustrations/

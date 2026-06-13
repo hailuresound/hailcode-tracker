@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hailure Artist Board</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Hailure</h1>
+                    <span class="logo-sub">Artist Board</span>
+                </div>
+                <nav class="nav">
+                    <a href="#gallery" class="nav-link active">Gallery</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                </nav>
+                <button id="themeToggle" class="theme-btn" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-bg"></div>
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h2>Digital Art &<br>Creative Vision</h2>
+                    <p>Exploring the intersection of sound, vision, and code through original artwork and design.</p>
+                    <a href="#gallery" class="btn btn-primary">View Gallery</a>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-shape"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery" class="section gallery-section">
+            <div class="section-header">
+                <h2>Gallery</h2>
+                <p class="section-subtitle">Selected works and explorations</p>
+            </div>
+            <div class="gallery-filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="digital">Digital</button>
+                <button class="filter-btn" data-filter="illustration">Illustration</button>
+                <button class="filter-btn" data-filter="design">Design</button>
+            </div>
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Gallery items will be rendered by JS -->
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section about-section">
+            <div class="about-content">
+                <div class="about-image">
+                    <div class="about-placeholder">
+                        <span class="placeholder-icon">🎨</span>
+                    </div>
+                </div>
+                <div class="about-text">
+                    <h2>About the Artist</h2>
+                    <p>Hailure is a multidisciplinary creative exploring the boundaries between digital art, music, and interactive design. Each piece is an experiment in form, color, and emotion — blending traditional artistic principles with modern digital techniques.</p>
+                    <p>Inspired by the raw energy of underground music scenes and the precision of code, the work seeks to create visual experiences that resonate on a visceral level.</p>
+                    <div class="about-stats">
+                        <div class="stat">
+                            <span class="stat-number" id="statProjects">0</span>
+                            <span class="stat-label">Projects</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="statPieces">0</span>
+                            <span class="stat-label">Pieces</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="statExhibitions">0</span>
+                            <span class="stat-label">Exhibitions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section contact-section">
+            <div class="section-header">
+                <h2>Get in Touch</h2>
+                <p class="section-subtitle">Collaborations, commissions, or just to say hello</p>
+            </div>
+            <form id="contactForm" class="contact-form">
+                <div class="form-group">
+                    <label for="contactName">Name</label>
+                    <input type="text" id="contactName" name="name" required placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label for="contactEmail">Email</label>
+                    <input type="email" id="contactEmail" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="contactMessage">Message</label>
+                    <textarea id="contactMessage" name="message" rows="5" required placeholder="Tell me about your project..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+            </form>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>Hailure</h3>
+                    <p>Artist Board &copy; 2026</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Instagram</a>
+                    <a href="#" class="footer-link">Twitter</a>
+                    <a href="#" class="footer-link">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

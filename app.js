@@ -50,6 +50,7 @@ class ProjectManager {
 
         form.addEventListener('submit', (e) => this.handleFormSubmit(e));
 
+        this.runMigrations();
         this.setupDarkMode();
         this.setupSettingsModal();
         this.setupSortControls();
@@ -228,13 +229,64 @@ class ProjectManager {
         return `${hours}h ${mins}m`;
     }
 
+    runMigrations() {
+        const flag = localStorage.getItem('migration_brandHubSessionFix');
+        if (flag === 'done') return;
+
+        // Seed correct sessions for hailcode-tracker
+        const tracker = this.projects.find(p => p.id === 'hailcode-tracker');
+        if (tracker) {
+            if (!tracker.sessions) tracker.sessions = [];
+            const hasJun11 = tracker.sessions.some(s => s.date === '2026-06-11');
+            const hasJun13 = tracker.sessions.some(s => s.date === '2026-06-13');
+            tracker.sessions = tracker.sessions.filter(s =>
+                s.date !== '2026-06-11' && s.date !== '2026-06-13'
+            );
+            if (!hasJun11) {
+                tracker.sessions.push({ id: Date.now() + 1, date: '2026-06-11', duration: 120, notes: 'Initial build. Project cards, progress tracking, priority/status badges, AI Insights via OpenRouter, session logging, illustration assets.' });
+            }
+            if (!hasJun13) {
+                tracker.sessions.push({ id: Date.now() + 2, date: '2026-06-13', duration: 30, notes: 'Fixed ._filename prefix blocking GitHub Pages deployment. Added ._* to .gitignore. Seed data corrections for cross-browser consistency.' });
+            }
+        }
+
+        // Seed correct sessions for hailure-brand-hub
+        const brandHub = this.projects.find(p => p.id === 'hailure-brand-hub');
+        if (brandHub) {
+            if (!brandHub.sessions) brandHub.sessions = [];
+            const hasJun12 = brandHub.sessions.some(s => s.date === '2026-06-12');
+            const hasJun13 = brandHub.sessions.some(s => s.date === '2026-06-13');
+            brandHub.sessions = brandHub.sessions.filter(s =>
+                s.date !== '2026-06-12' && s.date !== '2026-06-13'
+            );
+            if (!hasJun12) {
+                brandHub.sessions.push({ id: Date.now() + 3, date: '2026-06-12', duration: 150, notes: 'Initial build sprint. IndexedDB + Dexie.js, board nesting, breadcrumbs, dark/light mode, freeform canvas 5000x4000px, pan + card drag, batch upload, folder upload, masonry>canvas migration, auto-grid, Re-grid button, rubber-band multi-select, group drag, bulk delete toolbar, minimap with real-time viewport indicator, image lightbox with keyboard nav, inline asset rename, Finder drag-drop, HTML export, JSON backup.' });
+            }
+            if (!hasJun13) {
+                brandHub.sessions.push({ id: Date.now() + 4, date: '2026-06-13', duration: 90, notes: 'Bug fixes and polish. Minimap lag fixed (two-layer canvas rendering), rubber-band coordinate space fix, selection flash fix, bulk delete confirmation toolbar, re-grid spacing tightened, duplicate asset cleanup, fit button, tracker migration.' });
+            }
+        }
+
+        // Clear any remaining mislogged 2h 30m session from artist website
+        const artistWebsite = this.projects.find(p => p.id === 'hailure-artist-website');
+        if (artistWebsite) {
+            artistWebsite.sessions = (artistWebsite.sessions || []).filter(s =>
+                !(s.date === '2026-06-12' && s.duration === 150)
+            );
+        }
+
+        this.saveProjects();
+        localStorage.setItem('migration_brandHubSessionFix', 'done');
+        console.log('Migration brandHubSessionFix applied');
+    }
+
     syncDefaultProject() {
         const seedProjects = [
             {
                 id: 'hailcode-tracker',
                 name: 'HAILCODE Tracker',
                 description: 'A personal vibe coding project tracker built under the HAILCODE brand. Stack: vanilla HTML/CSS/JS. Features so far: project cards, progress tracking, priority tags, AI Insights panel, session logging, Kanban board view, forest-gold visual theme. Live demo: https://hailuresound.github.io/hailcode-tracker/\n\nRoadmap Features:\n- Project archiving system\n- Burndown charts for sprint tracking\n- Cross-session dark mode sync\n\nTroubleshooting Focus Areas:\n- Session time calculation accuracy\n- Drag-and-drop boundary cases\n- Mobile viewports under 320px',
-                progress: 75,
+                progress: 70,
                 priority: 'medium',
                 tags: ['productivity', 'tool'],
                 dueDate: null,
@@ -243,7 +295,7 @@ class ProjectManager {
                 id: 'hailure-artist-website',
                 name: 'Hailure Artist Website',
                 description: 'Brand website for Hailure. Features: artist bio, discography, shop with Stripe integration for digital and physical products.',
-                progress: 5,
+                progress: 50,
                 priority: 'high',
                 tags: ['web', 'hailure', 'stripe', 'ecommerce'],
                 dueDate: null,
@@ -252,7 +304,7 @@ class ProjectManager {
                 id: 'summonr',
                 name: 'SUMMONR',
                 description: 'Multi-FX plugin. Previously developed in Claude Code. To be continued.',
-                progress: 25,
+                progress: 5,
                 priority: 'high',
                 tags: ['plugin', 'dsp', 'audio', 'juce'],
                 dueDate: null,
@@ -273,6 +325,15 @@ class ProjectManager {
                 progress: 0,
                 priority: 'medium',
                 tags: ['plugin', 'dsp', 'audio', 'juce'],
+                dueDate: null,
+            },
+            {
+                id: 'hailure-brand-hub',
+                name: 'Hailure Brand Hub',
+                description: 'Milanote-inspired brand asset management dashboard. Features: freeform spatial canvas, board nesting, multi-select + group drag, minimap, image lightbox, inline rename, Finder drag-drop, HTML export, JSON backup.',
+                progress: 82,
+                priority: 'medium',
+                tags: ['tool', 'hailure', 'brand'],
                 dueDate: null,
             },
         ];

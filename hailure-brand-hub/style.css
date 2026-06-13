@@ -334,6 +334,29 @@ body {
     display: block;
 }
 
+/* Canvas drop overlay */
+.canvas-drop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    border: 3px dashed #c8a84e;
+    border-radius: var(--radius-md);
+    pointer-events: none;
+}
+
+.canvas-drop-overlay span {
+    color: #c8a84e;
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 16px 32px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-sm);
+}
+
 /* Inline label edit input */
 .label-edit-input {
     all: unset;

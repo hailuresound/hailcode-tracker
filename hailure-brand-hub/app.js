@@ -979,6 +979,57 @@ const App = (() => {
         function onScroll() { redrawMinimapViewport(); }
         viewport.addEventListener('scroll', onScroll);
 
+        // ── Drag-and-drop file import ──
+        const dropOverlay = document.createElement('div');
+        dropOverlay.className = 'canvas-drop-overlay';
+        dropOverlay.innerHTML = '<span>Drop files to add to board</span>';
+        dropOverlay.style.display = 'none';
+        viewport.appendChild(dropOverlay);
+
+        let dropCounter = 0;
+
+        viewport.addEventListener('dragenter', (e) => {
+            if (state.view !== 'board' || !state.currentBoardId) return;
+            if (!e.dataTransfer.types || !Array.from(e.dataTransfer.types).includes('Files')) return;
+            e.preventDefault();
+            dropCounter++;
+            dropOverlay.style.display = 'flex';
+        });
+
+        viewport.addEventListener('dragover', (e) => {
+            if (state.view !== 'board' || !state.currentBoardId) return;
+            if (!e.dataTransfer.types || !Array.from(e.dataTransfer.types).includes('Files')) return;
+            e.preventDefault();
+        });
+
+        viewport.addEventListener('dragleave', (e) => {
+            if (state.view !== 'board' || !state.currentBoardId) return;
+            dropCounter--;
+            if (dropCounter <= 0) {
+                dropCounter = 0;
+                dropOverlay.style.display = 'none';
+            }
+        });
+
+        viewport.addEventListener('drop', (e) => {
+            if (state.view !== 'board' || !state.currentBoardId) return;
+            e.preventDefault();
+            dropCounter = 0;
+            dropOverlay.style.display = 'none';
+
+            const files = [...(e.dataTransfer.files || [])];
+            if (files.length === 0) return;
+
+            // Calculate drop position in canvas coordinates
+            const rect = viewport.getBoundingClientRect();
+            const vpX = e.clientX - rect.left + viewport.scrollLeft;
+            const vpY = e.clientY - rect.top + viewport.scrollTop;
+            const canvasX = Math.round(vpX - state.canvasOffsetX);
+            const canvasY = Math.round(vpY - state.canvasOffsetY);
+
+            handleCanvasDrop(state.currentBoardId, files, Math.max(20, canvasX), Math.max(20, canvasY));
+        });
+
         // Cleanup
         state._cleanupCanvas = () => {
             viewport.removeEventListener('mousedown', onMouseDown);
@@ -987,6 +1038,7 @@ const App = (() => {
             viewport.removeEventListener('dblclick', onCanvasDblClick);
             window.removeEventListener('keydown', onKeyDown);
             viewport.removeEventListener('mousedown', onClearSelection);
+            if (dropOverlay.parentNode) dropOverlay.parentNode.removeChild(dropOverlay);
         };
     }
 
@@ -1486,6 +1538,82 @@ const App = (() => {
         state._pendingY = null;
         showToast(`Added ${files.length} file${files.length > 1 ? 's' : ''}`);
         renderBoardView(boardId);
+    }
+
+    // ─── CANVAS DROP HANDLER ───
+
+    async function handleCanvasDrop(boardId, files, dropX, dropY) {
+        const images = [];
+        const fileAssets = [];
+
+        for (const file of files) {
+            const ext = extFromName(file.name);
+            if (isImage(file.type, ext)) {
+                images.push(file);
+            } else if (isFont(file.type, ext) || isPDF(file.type, ext)) {
+                fileAssets.push(file);
+            }
+        }
+
+        const assetsList = await idb.getAssetsByBoard(boardId);
+        let lastPos = assetsList.length > 0 ? Math.max(...assetsList.map(a => a.position)) : 0;
+        const GAP = 40;
+
+        if (images.length > 0) {
+            const GW = 200, GH = 280;
+            const imgCols = Math.max(1, Math.min(6, Math.floor((window.innerWidth - 48) / (GW + GAP))));
+            showUploadProgress(0, images.length);
+            for (let i = 0; i < images.length; i++) {
+                const file = images[i];
+                const baseName = file.name.replace(/\.[^/.]+$/, '');
+                lastPos += 1.0;
+                const asset = {
+                    boardId,
+                    type: 'image',
+                    position: lastPos,
+                    createdAt: new Date(),
+                    data: file,
+                    alt: baseName,
+                    x: dropX + (i % imgCols) * (GW + GAP),
+                    y: dropY + Math.floor(i / imgCols) * (GH + GAP),
+                };
+                await idb.putAsset(asset);
+                showUploadProgress(i + 1, images.length);
+            }
+            hideUploadProgress();
+        }
+
+        if (fileAssets.length > 0) {
+            const FW = 240, FH = 90;
+            const fileCols = Math.max(1, Math.min(6, Math.floor((window.innerWidth - 48) / (FW + GAP))));
+            const fileDropY = dropY + (images.length > 0 ? Math.ceil(images.length / 6) * (280 + GAP) : 0);
+            showUploadProgress(0, fileAssets.length);
+            for (let i = 0; i < fileAssets.length; i++) {
+                const file = fileAssets[i];
+                lastPos += 1.0;
+                const asset = {
+                    boardId,
+                    type: 'file',
+                    position: lastPos,
+                    createdAt: new Date(),
+                    data: file,
+                    name: file.name,
+                    size: file.size,
+                    mime: file.type || 'application/octet-stream',
+                    x: dropX + (i % fileCols) * (FW + GAP),
+                    y: fileDropY + Math.floor(i / fileCols) * (FH + GAP),
+                };
+                await idb.putAsset(asset);
+                showUploadProgress(i + 1, fileAssets.length);
+            }
+            hideUploadProgress();
+        }
+
+        const total = images.length + fileAssets.length;
+        if (total > 0) {
+            showToast(`Added ${total} file${total > 1 ? 's' : ''}`);
+            renderBoardView(boardId);
+        }
     }
 
     // ─── SINGLE ASSET ───
